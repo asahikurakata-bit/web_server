@@ -1,0 +1,79 @@
+{% extends "servermanager/base.html" %}
+{% block title %}私たちについて{% endblock %}
+
+{% block content %}
+<style>
+    .about-container { max-width: 800px; margin: 0 auto; }
+    .about-section {
+        padding: 50px 40px;
+        background-color: var(--bg-secondary);
+        border-radius: 10px;
+        margin-bottom: 40px;
+    }
+    .about-section h1, .about-section h2 {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    .about-section h1 { font-size: 2.5rem; }
+    .about-section h2 {
+        font-size: 1.8rem;
+        color: var(--accent-cyan);
+        border-bottom: 2px solid var(--accent-cyan);
+        padding-bottom: 10px;
+        display: inline-block;
+    }
+    .about-section p, .about-section li {
+        color: var(--text-sub);
+        line-height: 1.9;
+        font-size: 1.1rem;
+        margin-bottom: 20px;
+    }
+    .profile-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 30px;
+    }
+    .profile-table th, .profile-table td {
+        border: 1px solid #333;
+        padding: 15px;
+        text-align: left;
+    }
+    .profile-table th {
+        width: 30%;
+        background-color: rgba(0,0,0,0.2);
+    }
+
+</style>
+
+<div class="content-section">
+    <div class="about-container">
+        
+        <section class="about-section">
+            <h1 style="border: none; padding: 0;">事業への想い</h1>
+            <h2>誰もが安心して、最高のパフォーマンスを。</h2>
+            <p>急速にIT化が進む現代社会において、誰もが情報を発信し、創造性を表現する力を持っています。<br>私たちは、その力を最大限に引き出すための土台（インフラ）を提供したいと考えています。</p>
+            <p>「専門知識がないと難しい」「コストが高い」「セキュリティが不安」。<br>そんな障壁を取り払い、個人から企業、そしてゲームを楽しむすべての人々が、もっと手軽に、安心して、高性能なサービスを利用できる世界。それが私たちの目指す未来です。</p>
+        </section>
+
+        <section class="about-section">
+            <div style="text-align: center;"><h2>代表ごあいさつ</h2></div>
+            <p>はじめまして。代表の〇〇です。<br>この度は、当サービスにご関心をお寄せいただき、誠にありがとうございます。</p>
+            <p>当サービスは、私一人の「こんなサービスがあったらいいな」という想いからスタートしました。そのため、まだ小さなサービスではありますが、お客様一人ひとりとの距離が近いことを最大の強みだと考えています。</p>
+            <p>お困りの際には、代表である私が直接サポートさせていただきます。お客様の声を真摯に受け止め、サービスの改善に迅速に反映させていくことをお約束します。</p>
+            <p>将来的には、より多くのお客様のご期待に応えるべく仲間を増やし、サービスを拡充していく所存です。まずは、目の前のお客様にご満足いただくことを第一に、誠心誠意努めてまいります。どうぞ、末永くお付き合いいただけますと幸いです。</p>
+        </section>
+
+        <section class="about-section">
+             <div style="text-align: center;"><h2>会社概要</h2></div>
+             <table class="profile-table">
+                <tr><th>事業名</th><td>レンタルサーバーサービス（仮）</td></tr>
+                <tr><th>代表者</th><td>〇〇 〇〇</td></tr>
+                <tr><th>所在地</th><td>（準備中）</td></tr>
+                <tr><th>設立</th><td>2025年</td></tr>
+                <tr><th>事業内容</th><td>ウェブホスティング事業、ゲームサーバーホスティング事業</td></tr>
+             </table>
+        </section>
+
+    </div>
+</div>
+{% endblock %}

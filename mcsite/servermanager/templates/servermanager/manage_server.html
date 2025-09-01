@@ -1,0 +1,107 @@
+{% extends "servermanager/base.html" %}
+{% block title %}サーバー設定 - {{ server.port }}{% endblock %}
+
+{% block content %}
+<style>
+    .setting-card {
+        background-color: var(--bg-secondary);
+        padding: 25px;
+        margin-bottom: 20px;
+        border-radius: 8px;
+    }
+    .setting-card h3 {
+        margin-top: 0;
+        color: var(--accent-cyan);
+        border-bottom: 2px solid var(--accent-cyan);
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+    }
+    .form-group {
+        margin-bottom: 15px;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        color: var(--text-main);
+    }
+    .form-group textarea, .form-group input[type="file"], .form-group select {
+        width: 100%;
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid var(--bg-tertiary);
+        background-color: var(--bg-primary);
+        color: var(--text-main);
+    }
+    .form-group small {
+        color: var(--text-sub);
+    }
+    .btn-save {
+        background: var(--accent-cyan);
+        color: var(--bg-primary);
+        border: none;
+        border-radius: 5px;
+        padding: 10px 20px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .btn-save:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 10px var(--accent-cyan);
+    }
+</style>
+
+<section class="content-section">
+    <h2>サーバー設定 (ポート: {{ server.port }})</h2>
+    <a href="{% url 'server_startup_page' %}">&larr; サーバー管理に戻る</a>
+
+    <div class="setting-card" style="margin-top: 20px;">
+        <h3>サーバーバージョン設定</h3>
+        <p>サーバーのバージョンを選択できます。変更を適用するにはサーバーの再起動が必要です。</p>
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="version">Minecraft Version</label>
+                <select name="version" id="version">
+                    {% for ver in available_versions %}
+                    <option value="{{ ver }}" {% if server.version == ver %}selected{% endif %}>{{ ver }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" name="update_version" class="btn-save">バージョンを保存</button>
+        </form>
+    </div>
+    
+    <div class="setting-card">
+        <h3>MOD設定 (Java Editionのみ)</h3>
+        <p>CurseForgeのMODをワンクリックで導入できます。MODのFile IDをカンマ区切りで入力してください。</p>
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="mods">CurseForge File IDs</label>
+                <textarea name="mods" id="mods" rows="5" placeholder="例: 453963,293233,238222">{{ server.mods }}</textarea>
+                <small>MODを追加・削除したら、サーバーを再起動して適用してください。</small>
+            </div>
+            <button type="submit" name="update_mods" class="btn-save">MOD設定を保存</button>
+        </form>
+    </div>
+
+    <div class="setting-card">
+        <h3>カスタムワールド設定</h3>
+        <p>ご自身で用意したワールドデータ（.zip）をアップロードしてサーバーに適用できます。</p>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="world_file">ワールドデータ (.zipファイル)</label>
+                <input type="file" name="world_file" id="world_file" accept=".zip" required>
+                {% if server.world_data_path %}
+                <small>現在設定中のワールド: {{ server.world_data_path }}</small>
+                {% else %}
+                <small>まだワールドはアップロードされていません。</small>
+                {% endif %}
+            </div>
+            <button type="submit" name="upload_world" class="btn-save">アップロードして設定</button>
+        </form>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,112 @@
+{% extends "servermanager/base.html" %}
+
+{% block title %}ウェブサーバー管理{% endblock %}
+
+{% block content %}
+<style>
+    .manage-container {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    .page-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+    .page-header h1 {
+        font-size: 2.8rem;
+        margin-bottom: 10px;
+    }
+    .page-header .server-id {
+        font-size: 1rem;
+        color: var(--text-sub);
+        font-family: 'Inter', sans-serif;
+    }
+
+    .info-card, .action-card {
+        background-color: var(--bg-secondary);
+        border-radius: 10px;
+        padding: 30px;
+        margin-bottom: 30px;
+    }
+    .info-card h2, .action-card h2 {
+        margin-top: 0;
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #333;
+    }
+
+    .spec-list {
+        list-style: none;
+        padding: 0;
+    }
+    .spec-list li {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px 0;
+        border-bottom: 1px solid #2a2a2a;
+    }
+    .spec-list li:last-child {
+        border-bottom: none;
+    }
+    .spec-list .spec-key {
+        color: var(--text-sub);
+    }
+    .spec-list .spec-value {
+        font-weight: bold;
+    }
+
+    .action-buttons {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 20px;
+    }
+    .action-btn {
+        display: block;
+        padding: 12px 20px;
+        border-radius: 5px;
+        text-align: center;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }
+    .btn-restart { background-color: var(--accent-cyan); color: var(--bg-primary); }
+    .btn-stop { background-color: #ffc107; color: var(--bg-primary); }
+    .btn-delete { background-color: #dc3545; color: white; }
+
+    .btn-restart:hover { background-color: #00e0e0; }
+    .btn-stop:hover { background-color: #ffb300; }
+    .btn-delete:hover { background-color: #c82333; }
+</style>
+
+<div class="manage-container">
+    <div class="page-header">
+        <h1>ウェブサーバー管理</h1>
+        <p class="server-id">サーバーID: {{ server.id }}</p>
+    </div>
+
+    <div class="info-card">
+        <h2>サーバー情報</h2>
+        <ul class="spec-list">
+            <li><span class="spec-key">ステータス</span> <span class="spec-value">{% if server.is_active %}稼働中{% else %}停止中{% endif %}</span></li>
+            <li><span class="spec-key">ポート</span> <span class="spec-value">{{ server.port }}</span></li>
+            <li><span class="spec-key">プランタイプ</span> <span class="spec-value">{{ server.get_plan_type_display }}</span></li>
+            <li><span class="spec-key">CPU</span> <span class="spec-value">{{ server.cpu_cores }} コア</span></li>
+            <li><span class="spec-key">メモリ</span> <span class="spec-value">{{ server.mem_limit }}</span></li>
+            <li><span class="spec-key">ディスク</span> <span class="spec-value">{{ server.storage }}</span></li>
+        </ul>
+    </div>
+
+    <div class="action-card">
+        <h2>サーバー操作</h2>
+        <div class="action-buttons">
+            <a href="{% url 'restart_server' server.id %}" class="action-btn btn-restart">再起動</a>
+            <a href="{% url 'stop_server' server.id %}" class="action-btn btn-stop">停止</a>
+            <a href="{% url 'delete_server' server.id %}" class="action-btn btn-delete" onclick="return confirm('本当にこのサーバーを削除しますか？この操作は元に戻せません。')">削除</a>
+        </div>
+    </div>
+    
+    <div class="action-card">
+        <h2>コントロールパネル (開発中)</h2>
+        <p style="color: var(--text-sub);">今後のアップデートで、ファイルマネージャーやドメイン設定などの機能が追加される予定です。</p>
+    </div>
+</div>
+{% endblock %}

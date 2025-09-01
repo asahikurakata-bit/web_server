@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>お支払い手続き</title>
+    <script src="https://js.stripe.com/v3/"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --background-color: #121212;
+            --surface-color: #1e1e1e;
+            --primary-text-color: #e0e0e0;
+            --secondary-text-color: #a0a0a0;
+            --accent-gradient: linear-gradient(90deg, #8e44ad, #c0392b);
+            --border-color: #333;
+            --error-color: #e74c3c;
+        }
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: var(--background-color);
+            color: var(--primary-text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .checkout-container {
+            width: 100%;
+            max-width: 500px;
+            background-color: var(--surface-color);
+            border-radius: 16px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+            overflow: hidden;
+            animation: fadeIn 0.5s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .checkout-body {
+            padding: 30px 35px;
+        }
+        .order-summary {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .order-summary h2 {
+            font-size: 1.2rem;
+            margin: 0 0 15px 0;
+        }
+        .plan-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1rem;
+        }
+        h3 { font-size: 1.2rem; margin-bottom: 20px; }
+        /* Payment Elementがここに挿入される */
+        #payment-element { margin-bottom: 25px; }
+
+        #error-message {
+            color: var(--error-color);
+            font-size: 0.9rem;
+            min-height: 1.2em;
+        }
+        #submit-button {
+            width: 100%; padding: 15px; font-size: 1.1rem; font-weight: 700;
+            color: white; background: var(--accent-gradient); border: none;
+            border-radius: 8px; cursor: pointer; transition: all 0.3s ease;
+            margin-top: 15px;
+        }
+        #submit-button.processing { cursor: not-allowed; }
+        #submit-button .spinner {
+            display: inline-block; width: 18px; height: 18px;
+            border: 2px solid rgba(255,255,255,0.5); border-radius: 50%;
+            border-top-color: #fff; animation: spin 1s ease-in-out infinite;
+            margin-right: 10px; vertical-align: middle;
+        }
+        .security-footer {
+            padding: 20px; text-align: center; font-size: 0.8rem;
+            color: var(--secondary-text-color); background-color: rgba(0,0,0,0.2);
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    
+    <div class="checkout-container">
+        <main class="checkout-body">
+            <section class="order-summary">
+                <h2>ご注文内容</h2>
+                <div class="plan-details">
+                    <span class="plan-name">{{ plan.name }} プラン</span>
+                    <span class="plan-price">¥{{ plan.price|floatformat:"0" }} / 月</span>
+                </div>
+            </section>
+            
+            <form id="payment-form">
+                <h3>お支払い方法</h3>
+                <div id="payment-element"></div>
+                
+                <button id="submit-button" class="submit-button">
+                    <span class="button-text">¥{{ plan.price|floatformat:"0" }}を支払う</span>
+                </button>
+
+                <div id="error-message"></div>
+            </form>
+        </main>
+
+        <footer class="security-footer">
+            <span>&#128274; SSL暗号化通信</span>
+            <span>Powered by Stripe</span>
+        </footer>
+    </div>
+
+   <script>
+    // Djangoビューから渡された値
+    const stripePublicKey = '{{ stripe_public_key }}';
+    const clientSecret = '{{ client_secret }}';
+    const planId = '{{ plan.id }}';
+    const planPrice = '{{ plan.price|floatformat:"0" }}';
+    const isAdmin = JSON.parse("{{ is_admin|yesno:'true,false' }}");
+    const csrfToken = '{{ csrf_token }}';
+
+    const form = document.getElementById('payment-form');
+    const submitButton = document.getElementById('submit-button');
+    const errorMessageDiv = document.getElementById('error-message');
+
+    let stripe, elements;
+
+    // 管理者でない場合のみ、Stripeの要素を初期化
+    if (!isAdmin) {
+        stripe = Stripe(stripePublicKey, { locale: 'ja' });
+        elements = stripe.elements({ clientSecret });
+        const paymentElement = elements.create('payment');
+        paymentElement.mount('#payment-element');
+    } else {
+        // 管理者の場合は、支払いフォームを非表示にして文言を変更
+        document.getElementById('payment-element').style.display = 'none';
+        form.querySelector('h3').textContent = '管理者モード';
+        submitButton.querySelector('.button-text').textContent = 'サーバーを即時作成';
+    }
+
+    // フォーム送信時のイベントリスナー
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        setLoading(true);
+
+        if (isAdmin) {
+            // 【管理者用の処理】
+            const response = await fetch('/api/admin-create-server/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({ plan_id: planId })
+            });
+            const data = await response.json();
+
+            if (data.success) {
+                window.location.href = data.redirect_url;
+            } else {
+                errorMessageDiv.textContent = `エラー: ${data.error}`;
+                setLoading(false);
+            }
+        } else {
+            // 【一般ユーザー用の処理】
+            // ★ Webhook方式に変更したため、決済完了APIの呼び出しは不要。
+            // stripe.confirmPaymentが決済処理を行い、完了後/処理中にreturn_urlへリダイレクトする。
+            const { error } = await stripe.confirmPayment({
+                elements: elements,
+                confirmParams: {
+                    // 支払いが完了、またはアクションが必要な場合にリダイレクトされるURL。
+                    // コンビニ払いなどの場合、支払い番号を表示するページに一旦リダイレクトされた後、
+                    // 最終的にこのURLに戻ってくる。
+                    return_url: window.location.origin + '/server/startup/'
+                }
+            });
+
+            // このコードに到達するのは、カード情報が無効などの即時エラーが発生した場合のみ。
+            // 通常はページがリダイレクトされるため、ここには来ない。
+            if (error) {
+                errorMessageDiv.textContent = error.message;
+                setLoading(false);
+            }
+        }
+    });
+    
+    // ローディング表示の関数
+    function setLoading(isLoading) {
+        submitButton.disabled = isLoading;
+        const buttonText = submitButton.querySelector('.button-text');
+        if (isLoading) {
+            buttonText.innerHTML = '<span class="spinner"></span>処理中...';
+        } else {
+            if(isAdmin) {
+                buttonText.textContent = `サーバーを即時作成`;
+            } else {
+                buttonText.textContent = `¥${planPrice}を支払う`;
+            }
+        }
+    }
+</script>
+</body>
+</html>

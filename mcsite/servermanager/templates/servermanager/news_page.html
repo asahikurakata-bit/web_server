@@ -1,0 +1,45 @@
+{% extends "servermanager/base.html" %}
+{% block title %}ニュース{% endblock %}
+
+{% block content %}
+<style>
+    .news-article {
+        background-color: var(--bg-secondary);
+        padding: 25px;
+        margin-bottom: 20px;
+        border-left: 4px solid var(--accent-cyan);
+        border-radius: 5px;
+    }
+    .news-article time {
+        color: var(--text-sub);
+        font-size: 0.9rem;
+        display: block;
+        margin-bottom: 10px;
+    }
+    .news-article p {
+        margin: 0;
+        line-height: 1.6;
+    }
+    .no-news {
+        text-align: center;
+        color: var(--text-sub);
+        padding: 50px;
+        background-color: var(--bg-secondary);
+        border-radius: 10px;
+    }
+</style>
+
+<section class="content-section">
+    <h2>ニュース</h2>
+    
+    {% for news in news_list %}
+    <article class="news-article">
+        <time>{{ news.date }}</time>
+        <p>{{ news.content }}</p>
+    </article>
+    {% empty %}
+    <p class="no-news">現在、新しいニュースはありません。</p>
+    {% endfor %}
+    
+</section>
+{% endblock %}

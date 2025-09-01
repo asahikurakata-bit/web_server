@@ -1,0 +1,304 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}レンタルサーバーサービス{% endblock %}</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Oswald:wght@700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <style>
+        /* --- 0. 基本設定と変数 --- */
+        :root {
+            --bg-primary: #0D0D0D;
+            --bg-secondary: #1A1A1A;
+            --text-main: #F5F5F5;
+            --text-sub: #A0A0A0;
+            --accent-cyan: #00FFFF;
+            --accent-purple: #9370DB;
+        }
+        
+        /* ★ スムーススクロールを有効化 */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            margin: 0;
+            overflow-x: hidden;
+            padding-top: 85px; 
+        }
+
+        h1, h2, h3, .logo a {
+            font-family: 'Oswald', sans-serif;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        
+        a {
+            color: var(--accent-cyan);
+            text-decoration: none;
+        }
+
+        main {
+            min-height: calc(100vh - 85px - 250px); /* ★ フッターの高さを考慮 */
+        }
+
+        section {
+            padding: 100px 5%;
+        }
+
+        /* --- 1. ヘッダー --- */
+        #main-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            padding: 20px 5%;
+            box-sizing: border-box;
+            background-color: rgba(26, 26, 26, 0.75);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .logo { font-size: 1.5rem; margin: 0; }
+        .logo a { color: var(--text-main); text-decoration: none; }
+
+        #main-nav ul { display: flex; list-style: none; margin: 0; padding: 0; gap: 35px; }
+        #main-nav a { color: var(--text-main); font-weight: bold; position: relative; padding: 5px 0; transition: color 0.3s ease; }
+        #main-nav a:hover { color: var(--accent-cyan); }
+        .header-actions { display: flex; align-items: center; gap: 20px; }
+        .welcome-message { color: var(--text-sub); margin-right: 10px; }
+        .login-link { color: var(--text-sub); font-weight: bold; transition: color 0.3s ease; }
+        .login-link:hover { color: var(--text-main); }
+        .cta-button-header { background-color: var(--accent-cyan); color: var(--bg-primary); padding: 10px 20px; border-radius: 5px; font-weight: bold; display: inline-block; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .cta-button-header:hover { transform: scale(1.05); box-shadow: 0 0 15px var(--accent-cyan); }
+        
+        /* ★ ハンバーガーメニューのスタイル */
+        .hamburger-menu { display: none; }
+        #mobile-nav-menu { display: none; }
+
+        /* --- レスポンシブ対応 (Header & Mobile Nav) --- */
+        @media (max-width: 1024px) {
+            #main-nav { display: none; }
+            .hamburger-menu { display: flex; flex-direction: column; justify-content: space-around; width: 30px; height: 25px; background: transparent; border: none; cursor: pointer; padding: 0; order: 3; z-index: 1002; }
+            .hamburger-menu span { width: 100%; height: 3px; background-color: var(--text-main); border-radius: 2px; transition: all 0.3s ease-in-out; }
+            
+            /* ★ ハンバーガーメニューのアクティブ（x印）スタイル */
+            .hamburger-menu.active span:nth-child(1) { transform: translateY(11px) rotate(45deg); }
+            .hamburger-menu.active span:nth-child(2) { opacity: 0; }
+            .hamburger-menu.active span:nth-child(3) { transform: translateY(-11px) rotate(-45deg); }
+            
+            /* ★ モバイル用ナビゲーションメニューのスタイル */
+            #mobile-nav-menu {
+                display: flex; flex-direction: column; justify-content: center; align-items: center;
+                position: fixed; top: 0; left: 100%; /* 初期状態は画面右外 */
+                width: 100%; height: 100%;
+                background-color: rgba(13, 13, 13, 0.95);
+                backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+                transition: left 0.4s cubic-bezier(0.77, 0, 0.175, 1);
+                z-index: 1001;
+            }
+            #mobile-nav-menu.active { left: 0; /* アクティブ時に画面内に表示 */ }
+            #mobile-nav-menu ul { list-style: none; padding: 0; text-align: center; }
+            #mobile-nav-menu li { margin: 30px 0; }
+            #mobile-nav-menu a { color: var(--text-main); font-size: 2rem; font-weight: bold; text-transform: uppercase; }
+            #mobile-nav-menu .mobile-actions { margin-top: 40px; }
+            #mobile-nav-menu .mobile-actions a {
+                font-size: 1.2rem; display: block; margin-bottom: 25px;
+            }
+        }
+        @media (max-width: 768px) {
+            .header-actions .login-link, .header-actions .welcome-message, #main-header .cta-button-header { display: none; }
+        }
+
+        /* --- 2. フッター (★新規追加) --- */
+        #main-footer {
+            background-color: var(--bg-secondary);
+            color: var(--text-sub);
+            padding: 60px 5% 40px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+        .footer-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .footer-nav {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 40px 0;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px 40px;
+        }
+        .footer-nav a {
+            color: var(--text-sub);
+            transition: color 0.3s ease;
+        }
+        .footer-nav a:hover {
+            color: var(--accent-cyan);
+        }
+        .social-links {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 40px 0;
+            display: flex;
+            gap: 25px;
+        }
+        .social-links a {
+            color: var(--text-sub);
+            font-size: 1.5rem;
+            transition: color 0.3s ease, transform 0.3s ease;
+        }
+        .social-links a:hover {
+            color: var(--text-main);
+            transform: scale(1.2);
+        }
+        .copyright {
+            font-size: 0.9rem;
+        }
+        
+        /* --- 3. アニメーション (★新規追加) --- */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s cubic-bezier(0.645, 0.045, 0.355, 1), transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1);
+        }
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+    </style>
+</head>
+<body>
+    <header id="main-header">
+        <div class="header-container">
+            <h1 class="logo"><a href="{% url 'home_page' %}">レンタルサーバーサービス</a></h1>
+            <nav id="main-nav">
+                <ul>
+                    <li><a href="{% url 'home_page' %}">ホーム</a></li>
+                    <li><a href="{% url 'purchase_page' %}">料金プラン</a></li>
+                    <li><a href="{% url 'inquiry_page' %}">お問い合わせ</a></li>
+                    <li><a href="{% url 'terms_page' %}">利用規約</a></li>
+                    <li><a href="{% url 'news_page' %}">ニュース</a></li>
+                </ul>
+            </nav>
+            <div class="header-actions">
+                {% if user.is_authenticated %}
+                    <span class="welcome-message">ようこそ、{{ user.username }}さん</span>
+                    <a href="{% url 'server_startup_page' %}" class="cta-button-header">サーバー管理</a>
+                    <a href="{% url 'logout' %}" class="login-link">ログアウト</a>
+                {% else %}
+                    <a href="{% url 'login_page' %}" class="login-link">ログイン</a>
+                    <a href="{% url 'signup_page' %}" class="cta-button-header">アカウント作成</a>
+                {% endif %}
+            </div>
+            <button class="hamburger-menu"><span></span><span></span><span></span></button>
+        </div>
+    </header>
+
+    <div id="mobile-nav-menu">
+        <ul>
+            <li><a href="{% url 'home_page' %}">ホーム</a></li>
+            <li><a href="{% url 'purchase_page' %}">料金プラン</a></li>
+            <li><a href="{% url 'inquiry_page' %}">お問い合わせ</a></li>
+            <li><a href="{% url 'terms_page' %}">利用規約</a></li>
+            <li><a href="{% url 'news_page' %}">ニュース</a></li>
+        </ul>
+        <div class="mobile-actions">
+            {% if user.is_authenticated %}
+                <a href="{% url 'server_startup_page' %}" class="cta-button-header">サーバー管理</a>
+                <a href="{% url 'logout' %}" class="login-link">ログアウト</a>
+            {% else %}
+                <a href="{% url 'login_page' %}" class="login-link">ログイン</a>
+                <a href="{% url 'signup_page' %}" class="cta-button-header">アカウント作成</a>
+            {% endif %}
+        </div>
+    </div>
+    
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <footer id="main-footer">
+        <div class="footer-container">
+            <ul class="footer-nav">
+                <li><a href="{% url 'home_page' %}">ホーム</a></li>
+                <li><a href="{% url 'purchase_page' %}">料金プラン</a></li>
+                <li><a href="{% url 'inquiry_page' %}">お問い合わせ</a></li>
+                <li><a href="{% url 'terms_page' %}">利用規約</a></li>
+                <li><a href="{% url 'news_page' %}">ニュース</a></li>
+                <li><a href="#">プライバシーポリシー</a></li>
+            </ul>
+            <ul class="social-links">
+                <li><a href="#" aria-label="X"><i class="fa-brands fa-x-twitter"></i></a></li>
+                <li><a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a></li>
+                <li><a href="#" aria-label="GitHub"><i class="fa-brands fa-github"></i></a></li>
+            </ul>
+            <p class="copyright">&copy; {% now "Y" %} レンタルサーバーサービス. All Rights Reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- ハンバーガーメニュー機能 ---
+            const hamburger = document.querySelector('.hamburger-menu');
+            const mobileNav = document.querySelector('#mobile-nav-menu');
+            
+            if (hamburger && mobileNav) {
+                hamburger.addEventListener('click', () => {
+                    hamburger.classList.toggle('active');
+                    mobileNav.classList.toggle('active');
+                });
+            }
+
+            // --- スクロールフェードイン機能 ---
+            const fadeInElements = document.querySelectorAll('.fade-in');
+
+            if (fadeInElements.length > 0) {
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('visible');
+                            // 一度表示されたら監視を停止
+                            observer.unobserve(entry.target);
+                        }
+                    });
+                }, {
+                    threshold: 0.1 // 10%見えたら発火
+                });
+
+                fadeInElements.forEach(el => {
+                    observer.observe(el);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+{% extends "servermanager/base.html" %}
+{% block title %}サーバー購入{% endblock %}
+
+{% block content %}
+<div class="content-section">
+    <div style="max-width: 600px; margin: auto;">
+        <h2>サーバー購入</h2>
+        <div class="form-container">
+            <form method="post" action="{% url 'purchase_page' %}">
+                {% csrf_token %}
+                <label for="plan">プランを選択してください:</label>
+                <select name="plan_id" id="plan" required>
+                    {% for plan in plans %}
+                    <option value="{{ plan.id }}">{{ plan.name }} - {{ plan.price }}円/月 - CPU: {{ plan.cpu }}コア, RAM: {{ plan.ram }}GB</option>
+                    {% endfor %}
+                </select>
+                <button type="submit">購入手続きへ</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

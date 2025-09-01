@@ -1,0 +1,294 @@
+{% extends "servermanager/base.html" %}
+{% load static %}
+
+{% block title %}料金プランカスタマイズ{% endblock %}
+
+{% block content %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Oswald:wght@700&display=swap');
+    body { font-family: 'Noto Sans JP', sans-serif; background-color: #0d0d0d; color: #fff; }
+    .custom-plan-container { max-width: 1200px; margin: 50px auto; padding: 20px; display: grid; grid-template-columns: 1fr; gap: 40px; }
+    @media (min-width: 1024px) { .custom-plan-container { grid-template-columns: 2fr 1fr; } }
+    .config-panel { background-color: #1a1a1a; border-radius: 12px; border: 1px solid #3a3a3a; }
+    .tab-header { display: flex; border-bottom: 1px solid #3a3a3a; }
+    .tab-button { flex: 1; padding: 20px; text-align: center; background: transparent; border: none; color: #a0a0a0; font-size: 1.2rem; font-weight: 700; cursor: pointer; transition: all 0.3s ease; border-bottom: 3px solid transparent; }
+    .tab-button.active { color: #fff; border-bottom-color: var(--accent-cyan); }
+    .tab-button.mc.active { border-bottom-color: #5EEA52; }
+    .tab-content { display: none; padding: 30px; }
+    .tab-content.active { display: block; }
+    .config-group { margin-bottom: 30px; }
+    .config-group h3 { font-family: 'Oswald', sans-serif; font-size: 1.5rem; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #3a3a3a; }
+    .config-options { display: flex; flex-direction: column; gap: 10px; }
+    .config-option input[type="radio"] { display: none; }
+    .config-option label { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background-color: #252525; border-radius: 8px; border: 2px solid transparent; cursor: pointer; transition: all 0.3s ease; }
+    .config-option label:hover { background-color: #333; }
+    .config-option input[type="radio"]:checked + label { border-color: var(--accent-cyan); background-color: #2a3a3a; }
+    .config-option input[type="radio"].mc:checked + label { border-color: #5EEA52; background-color: #2a3a2a; }
+    .option-name { font-weight: 500; }
+    .option-price { color: #a0a0a0; font-weight: 700; }
+    .summary-panel { background-color: #1a1a1a; border-radius: 12px; padding: 30px; border: 1px solid #3a3a3a; position: sticky; top: 120px; }
+    .summary-panel h3 { font-family: 'Oswald', sans-serif; text-align: center; font-size: 1.8rem; margin-bottom: 20px; }
+    #summary-details { font-size: 0.9rem; color: #a0a0a0; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #3a3a3a; }
+    #summary-details ul { list-style: none; padding: 0; margin: 0; }
+    #summary-details li { margin-bottom: 8px; }
+    .summary-price-display { text-align: center; margin-bottom: 30px; }
+    .summary-price-display .label { color: #a0a0a0; font-size: 1rem; }
+    .summary-price-display .price { font-size: 3.5rem; font-weight: 700; color: var(--accent-cyan); line-height: 1; }
+    .summary-price-display .price.mc { color: #5EEA52; }
+    .summary-price-display .term { font-size: 1rem; color: #a0a0a0; }
+    .summary-button { display: block; width: 100%; padding: 15px; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: 700; cursor: pointer; transition: all 0.3s ease; background-color: var(--accent-cyan); color: #0d0d0d; }
+    .summary-button:hover { opacity: 0.9; }
+    .summary-button.mc { background-color: #5EEA52; }
+    .admin-button { 
+        background-color: var(--accent-purple) !important;
+        color: #fff !important;
+        margin-top: 15px;
+    }
+</style>
+
+<div class="custom-plan-container">
+    <div class="config-panel">
+        <div class="tab-header">
+            <button class="tab-button active" onclick="showTab('web')">
+                <i class="fas fa-globe"></i> ウェブホスティング
+            </button>
+            <button class="tab-button mc" onclick="showTab('mc')">
+                <i class="fas fa-cube"></i> マインクラフトサーバー
+            </button>
+        </div>
+
+        <form id="plan-form" method="post" action="{% url 'checkout_page' %}">
+            {% csrf_token %}
+            <input type="hidden" name="plan_type" id="plan-type" value="web">
+            <input type="hidden" name="total_price" id="total-price" value="">
+            <input type="hidden" name="plan_description" id="plan-description" value="">
+
+            <div id="web" class="tab-content active">
+                <div class="config-group">
+                    <h3>CPUコア数</h3>
+                    <div class="config-options">
+                        {% for option in web_options.cpu %}
+                        <div class="config-option">
+                            <input type="radio" class="plan-option" name="web_cpu" id="web_cpu_{{ forloop.counter }}" value="{{ option.name }}" data-price="{{ option.price }}" {% if forloop.first %}checked{% endif %}>
+                            <label for="web_cpu_{{ forloop.counter }}">
+                                <span class="option-name">{{ option.name }}</span>
+                                <span class="option-price">+ ¥{{ option.price|floatformat:0 }}</span>
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="config-group">
+                    <h3>メモリ容量</h3>
+                    <div class="config-options">
+                        {% for option in web_options.ram %}
+                        <div class="config-option">
+                            <input type="radio" class="plan-option" name="web_ram" id="web_ram_{{ forloop.counter }}" value="{{ option.name }}" data-price="{{ option.price }}" {% if forloop.first %}checked{% endif %}>
+                            <label for="web_ram_{{ forloop.counter }}">
+                                <span class="option-name">{{ option.name }}</span>
+                                <span class="option-price">+ ¥{{ option.price|floatformat:0 }}</span>
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                 <div class="config-group">
+                    <h3>ディスク容量</h3>
+                    <div class="config-options">
+                        {% for option in web_options.storage %}
+                        <div class="config-option">
+                            <input type="radio" class="plan-option" name="web_storage" id="web_storage_{{ forloop.counter }}" value="{{ option.name }}" data-price="{{ option.price }}" {% if forloop.first %}checked{% endif %}>
+                            <label for="web_storage_{{ forloop.counter }}">
+                                <span class="option-name">{{ option.name }}</span>
+                                <span class="option-price">+ ¥{{ option.price|floatformat:0 }}</span>
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <div id="mc" class="tab-content">
+                <div class="config-group">
+                    <h3>メモリ容量</h3>
+                    <div class="config-options">
+                         {% for option in mc_options.ram %}
+                        <div class="config-option">
+                            <input type="radio" class="plan-option mc" name="mc_ram" id="mc_ram_{{ forloop.counter }}" value="{{ option.name }}" data-price="{{ option.price }}" {% if forloop.first %}checked{% endif %}>
+                            <label for="mc_ram_{{ forloop.counter }}">
+                                <span class="option-name">{{ option.name }}</span>
+                                <span class="option-price">+ ¥{{ option.price|floatformat:0 }}</span>
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="config-group">
+                    <h3>CPUタイプ</h3>
+                    <div class="config-options">
+                        {% for option in mc_options.cpu %}
+                        <div class="config-option">
+                            <input type="radio" class="plan-option mc" name="mc_cpu" id="mc_cpu_{{ forloop.counter }}" value="{{ option.name }}" data-price="{{ option.price }}" {% if forloop.first %}checked{% endif %}>
+                            <label for="mc_cpu_{{ forloop.counter }}">
+                                <span class="option-name">{{ option.name }}</span>
+                                <span class="option-price">+ ¥{{ option.price|floatformat:0 }}</span>
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                 <div class="config-group">
+                    <h3>バックアップ</h3>
+                    <div class="config-options">
+                        {% for option in mc_options.backup %}
+                        <div class="config-option">
+                            <input type="radio" class="plan-option mc" name="mc_backup" id="mc_backup_{{ forloop.counter }}" value="{{ option.name }}" data-price="{{ option.price }}" {% if forloop.first %}checked{% endif %}>
+                            <label for="mc_backup_{{ forloop.counter }}">
+                                <span class="option-name">{{ option.name }}</span>
+                                <span class="option-price">+ ¥{{ option.price|floatformat:0 }}</span>
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="summary-panel">
+        <h3>ご注文内容</h3>
+        <div id="summary-details">
+             </div>
+        <div class="summary-price-display">
+            <p class="label">合計月額</p>
+            <p id="total-price-display" class="price">¥{{ web_base_price }}</p>
+            <p class="term">（税込）</p>
+        </div>
+
+        {% if user.is_superuser %}
+            <button id="admin-create-button" class="summary-button admin-button">
+                管理者としてサーバー作成
+            </button>
+        {% else %}
+            <button id="summary-button" type="submit" form="plan-form" class="summary-button">
+                契約に進む
+            </button>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('plan-form');
+    const totalPriceDisplay = document.getElementById('total-price-display');
+    const totalPriceInput = document.getElementById('total-price');
+    const planTypeInput = document.getElementById('plan-type');
+    const planDescriptionInput = document.getElementById('plan-description');
+    const summaryDetails = document.getElementById('summary-details');
+    
+
+    const basePrices = {
+        web: Number("{{ web_base_price|default:'0' }}"),
+        mc: Number("{{ mc_base_price|default:'0' }}")
+    };
+
+    function calculatePrice() {
+        const activeTab = planTypeInput.value;
+        let totalPrice = basePrices[activeTab];
+        let description = activeTab === 'web' ? 'ウェブホスティング: ' : 'マインクラフトサーバー: ';
+        let summaryHtml = '<ul>';
+
+        // 現在アクティブなタブの選択肢のみを計算対象にする
+        const selector = `#${activeTab} input[type="radio"]:checked`;
+        let selections = [];
+        document.querySelectorAll(selector).forEach(input => {
+            totalPrice += parseInt(input.dataset.price, 10);
+            const labelText = input.labels[0].querySelector('.option-name').textContent;
+            selections.push(labelText);
+            summaryHtml += `<li>${labelText}</li>`;
+        });
+        summaryHtml += '</ul>';
+        
+        description += selections.join(', ');
+
+        totalPriceDisplay.textContent = `¥${totalPrice.toLocaleString()}`;
+        totalPriceInput.value = totalPrice;
+        planDescriptionInput.value = description;
+        summaryDetails.innerHTML = summaryHtml;
+    }
+
+    // タブ切り替え機能
+    window.showTab = function(tabName) {
+        document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+        document.getElementById(tabName).classList.add('active');
+
+        document.querySelectorAll('.tab-button').forEach(tb => tb.classList.remove('active'));
+        const activeButton = document.querySelector(`.tab-button[onclick="showTab('${tabName}')"]`);
+        activeButton.classList.add('active');
+
+        planTypeInput.value = tabName;
+        
+        // サマリーの見た目をタブに合わせて変更
+        if(tabName === 'mc') {
+            totalPriceDisplay.classList.add('mc');
+            document.getElementById('summary-button')?.classList.add('mc');
+        } else {
+            totalPriceDisplay.classList.remove('mc');
+            document.getElementById('summary-button')?.classList.remove('mc');
+        }
+        
+        calculatePrice();
+    }
+
+    // フォーム内の選択肢が変更されたら価格を再計算
+    form.addEventListener('change', calculatePrice);
+
+    // 初期表示時の価格を計算
+    calculatePrice();
+
+    // ★★★ 管理者用ボタンの処理をここから追加 ★★★
+    const adminCreateButton = document.getElementById('admin-create-button');
+
+    if (adminCreateButton) {
+        adminCreateButton.addEventListener('click', function() {
+            const activeTab = document.getElementById('plan-type').value;
+            const data = {
+                plan_type: activeTab
+            };
+
+            const selector = `#${activeTab} input[type="radio"]:checked`;
+            document.querySelectorAll(selector).forEach(input => {
+                // 'web_cpu' -> 'cpu' のようにプレフィックスを削除
+                const key = input.name.replace('web_', '').replace('mc_', '');
+                data[key] = input.value;
+            });
+
+            // CSRFトークンを取得
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+            fetch("{% url 'admin_create_server' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    alert('管理者権限でサーバーが作成されました。');
+                    window.location.href = result.redirect_url;
+                } else {
+                    alert('エラーが発生しました: ' + result.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('通信エラーが発生しました。');
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

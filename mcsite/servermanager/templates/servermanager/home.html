@@ -1,0 +1,286 @@
+{% extends "servermanager/base.html" %}
+
+{% block title %}ホーム{% endblock %}
+
+{% block content %}
+<style>
+    /* --- ヒーローセクション --- */
+    .hero { height: 90vh; display: flex; justify-content: center; align-items: center; text-align: center; padding: 0 5%; box-sizing: border-box; background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.95)), radial-gradient(circle, #1a1a1a, #0d0d0d); position: relative; color: var(--text-main); margin-top: -85px; }
+    .hero-content h1 { font-size: clamp(2.5rem, 7vw, 4.5rem); margin: 0 0 20px 0; text-shadow: 0 0 20px rgba(0, 255, 255, 0.5); letter-spacing: 1px; line-height: 1.3; }
+    .hero-content p { font-size: clamp(1rem, 2.5vw, 1.2rem); color: var(--text-sub); max-width: 700px; margin: 0 auto 40px auto; line-height: 1.7; }
+    .cta-button-hero { font-size: 1.1rem; padding: 18px 40px; border: 2px solid var(--accent-cyan); border-radius: 5px; font-weight: bold; transition: all 0.3s ease; color: var(--text-main); }
+    .cta-button-hero:hover { background-color: var(--accent-cyan); color: var(--bg-primary); box-shadow: 0 0 25px var(--accent-cyan); }
+
+    /* --- サービス選択セクション --- */
+    .service-selection { display: grid; grid-template-columns: 1fr; gap: 40px; max-width: 1200px; margin: -80px auto 0 auto; padding: 0 5%; position: relative; z-index: 10; }
+    @media (min-width: 900px) { .service-selection { grid-template-columns: 1fr 1fr; } }
+    .service-card { background: var(--bg-secondary); border-radius: 10px; padding: 40px; text-align: center; border: 1px solid rgba(255,255,255,0.1); transition: transform 0.3s ease, box-shadow 0.3s ease; }
+    .service-card:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+    .service-card .icon { font-size: 3.5rem; margin-bottom: 20px; }
+    .service-card .web-icon { color: var(--accent-cyan); }
+    .service-card .mc-icon { color: #5EEA52; }
+    .service-card h2 { font-size: 2rem; margin-bottom: 15px; }
+    .service-card p { color: var(--text-sub); margin-bottom: 30px; line-height: 1.6; min-height: 75px; }
+    .service-card .cta-button { display: inline-block; width: 80%; padding: 15px; border-radius: 5px; font-weight: bold; text-align: center; transition: all 0.3s ease; }
+    .web-cta { background: var(--accent-cyan); color: var(--bg-primary); }
+    .web-cta:hover { transform: scale(1.05); box-shadow: 0 0 15px var(--accent-cyan); }
+    .mc-cta { background: #5EEA52; color: var(--bg-primary); }
+    .mc-cta:hover { transform: scale(1.05); box-shadow: 0 0 15px #5EEA52; }
+    
+    /* --- 「事業への想い」セクション --- */
+    .vision-section { background-color: var(--bg-primary); margin-top: 100px; padding: 100px 5%; border-top: 1px solid rgba(255,255,255,0.1); border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .vision-container { display: grid; grid-template-columns: 1fr; gap: 60px; max-width: 1200px; margin: 0 auto; align-items: center; }
+    @media (min-width: 900px) { .vision-container { grid-template-columns: 1fr 2fr; } }
+    .vision-header h2 { font-size: clamp(2.5rem, 8vw, 3.5rem); line-height: 1.2; margin: 0; position: relative; padding-left: 20px; border-left: 4px solid var(--accent-cyan); }
+    .vision-body p { font-size: 1.1rem; line-height: 1.9; color: var(--text-sub); margin-bottom: 20px; }
+    .vision-body p:last-child { margin-bottom: 0; }
+    
+    /* --- 特徴セクション --- */
+    .features-section { text-align: center; }
+    .features-section h2 { font-size: 2.5rem; margin-bottom: 50px; }
+    .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 40px; max-width: 1200px; margin: 0 auto; }
+    .feature-item { background: var(--bg-secondary); padding: 30px; border-radius: 8px; }
+    .feature-item .icon { font-size: 2.5rem; margin-bottom: 15px; color: var(--accent-cyan); }
+    .feature-item h3 { font-size: 1.5rem; margin-bottom: 10px; text-transform: none; font-family: 'Inter', sans-serif; }
+    .feature-item p { color: var(--text-sub); line-height: 1.6; }
+    .feature-item.mc-feature .icon { color: #5EEA52; }
+
+    /* ★ 料金プランのスタイルを修正 */
+    .pricing-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 30px;
+        max-width: 1200px;
+        margin: 80px auto 0 auto;
+        text-align: left;
+    }
+    .pricing-card {
+        background: var(--bg-secondary);
+        padding: 35px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        overflow: hidden;
+    }
+    .pricing-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+    .pricing-card h3 {
+        font-size: 1.8rem;
+        margin: 0 0 10px 0;
+        font-family: 'Oswald', sans-serif;
+    }
+    .pricing-card .plan-desc {
+        color: var(--text-sub);
+        margin-bottom: 25px;
+        font-size: 0.9rem;
+    }
+    .pricing-card .price {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 25px;
+        color: var(--text-main);
+    }
+    .pricing-card .price span {
+        font-size: 1rem;
+        font-weight: normal;
+        color: var(--text-sub);
+    }
+    .pricing-card ul {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 30px 0;
+        flex-grow: 1;
+    }
+    .pricing-card li {
+        margin-bottom: 15px;
+        padding-left: 25px;
+        position: relative;
+    }
+    .pricing-card li::before {
+        content: '✓';
+        color: var(--accent-cyan);
+        position: absolute;
+        left: 0;
+    }
+    .pricing-card.mc-plan li::before {
+        color: #5EEA52;
+    }
+    .pricing-card .cta-button {
+        display: block;
+        width: 90%; /* ボタンの幅を調整 */
+        margin: 0 auto; /* ★ ボタンを中央揃えにする */
+        padding: 15px;
+        border-radius: 5px;
+        font-weight: bold;
+        text-align: center;
+        transition: all 0.3s ease;
+        background: var(--accent-cyan);
+        color: var(--bg-primary);
+        border: 1px solid var(--accent-cyan);
+    }
+    .pricing-card .cta-button:hover {
+        background: transparent;
+        color: var(--accent-cyan);
+    }
+    .pricing-card.recommended {
+        border-color: var(--accent-purple);
+    }
+    .pricing-card.recommended::after {
+        content: 'おすすめ';
+        position: absolute;
+        top: 15px;
+        right: -30px;
+        background: var(--accent-purple);
+        color: white;
+        padding: 5px 30px;
+        font-size: 0.8rem;
+        font-weight: bold;
+        transform: rotate(45deg);
+    }
+    .pricing-card.recommended .cta-button {
+        background: var(--accent-purple);
+        border-color: var(--accent-purple);
+        color: var(--text-main);
+    }
+    .pricing-card.recommended .cta-button:hover {
+        background: transparent;
+        color: var(--accent-purple);
+    }
+</style>
+
+<section class="hero">
+    <div class="hero-content">
+        <h1>あなたの創造力を、解き放つインフラ。</h1>
+        <p>最新技術を駆使したウェブホスティングから、仲間と楽しむゲームサーバーまで。私たちは、誰もが安心して最高のパフォーマンスを手軽に利用できる環境を提供します。</p>
+        <a href="#services" class="cta-button-hero">サービスを見る</a>
+    </div>
+</section>
+
+<div id="services" class="service-selection">
+    <div class="service-card">
+        <div class="icon web-icon"><i class="fas fa-globe"></i></div>
+        <h2>ウェブホスティング</h2>
+        <p>個人ブログからビジネスサイトまで。圧倒的なスピードと堅牢なセキュリティで、あなたのウェブサイトを次のレベルへ。</p>
+        <a href="#web-hosting" class="cta-button web-cta">ウェブプランを見る</a>
+    </div>
+    <div class="service-card">
+        <div class="icon mc-icon"><i class="fas fa-cube"></i></div>
+        <h2>マインクラフトサーバー</h2>
+        <p>MODもプラグインも自由自在。DDoS対策完備の高性能サーバーで、仲間との冒険をラグなく快適に楽しもう。</p>
+        <a href="#minecraft-hosting" class="cta-button mc-cta">マイクラプランを見る</a>
+    </div>
+</div>
+
+<section id="vision" class="vision-section">
+    <div class="vision-container">
+        <div class="vision-header">
+            <h2>事業への<br>想い</h2>
+        </div>
+        <div class="vision-body">
+            <p>急速にIT化が進む現代社会において、誰もが情報を発信し、創造性を表現する力を持っています。私たちは、その力を最大限に引き出すための土台（インフラ）を提供したいと考えています。</p>
+            <p>「専門知識がないと難しい」「コストが高い」「セキュリティが不安」。そんな障壁を取り払い、個人から企業、そしてゲームを楽しむすべての人々が、もっと手軽に、安心して、高性能なサービスを利用できる世界。それが私たちの目指す未来です。</p>
+        </div>
+    </div>
+</section>
+
+<section id="web-hosting" class="features-section">
+    <h2>ウェブホスティングの特長</h2>
+    <div class="features-grid">
+        <div class="feature-item"><div class="icon"><i class="fas fa-fighter-jet"></i></div><h3>超高速NVMe SSD</h3><p>ウェブサイトの読み込みを劇的に高速化し、ユーザー体験を向上させます。</p></div>
+        <div class="feature-item"><div class="icon"><i class="fas fa-shield-alt"></i></div><h3>堅牢なセキュリティ</h3><p>無料SSL証明書やWAFを標準装備。あなたのサイトを脅威から守ります。</p></div>
+        <div class="feature-item"><div class="icon"><i class="fas fa-cogs"></i></div><h3>簡単インストール</h3><p>WordPressなどの主要CMSを数クリックで簡単にセットアップできます。</p></div>
+    </div>
+
+    <div class="pricing-grid">
+        <div class="pricing-card">
+            <h3>Starter</h3>
+            <p class="plan-desc">個人のブログやポートフォリオに最適</p>
+            <div class="price">¥990<span>/月</span></div>
+            <ul>
+                <li>2 vCPUコア</li>
+                <li>2GB メモリ</li>
+                <li>50GB NVMe SSD</li>
+                <li>1TB 転送量目安</li>
+            </ul>
+            <a href="{% url 'purchase_page' %}" class="cta-button">このプランで始める</a>
+        </div>
+        <div class="pricing-card recommended">
+            <h3>Business</h3>
+            <p class="plan-desc">中小規模のビジネスサイトに最適</p>
+            <div class="price">¥1,980<span>/月</span></div>
+            <ul>
+                <li>4 vCPUコア</li>
+                <li>4GB メモリ</li>
+                <li>100GB NVMe SSD</li>
+                <li>5TB 転送量目安</li>
+            </ul>
+            <a href="{% url 'purchase_page' %}" class="cta-button">このプランで始める</a>
+        </div>
+        <div class="pricing-card">
+            <h3>Ultimate</h3>
+            <p class="plan-desc">大規模サイトやECサイトに最適</p>
+            <div class="price">¥4,980<span>/月</span></div>
+            <ul>
+                <li>8 vCPUコア</li>
+                <li>8GB メモリ</li>
+                <li>200GB NVMe SSD</li>
+                <li>転送量 無制限</li>
+            </ul>
+            <a href="{% url 'purchase_page' %}" class="cta-button">このプランで始める</a>
+        </div>
+    </div>
+</section>
+
+<section id="minecraft-hosting" class="features-section">
+    <h2>マインクラフトサーバーの特長</h2>
+    <div class="features-grid">
+        <div class="feature-item mc-feature"><div class="icon"><i class="fas fa-yen-sign"></i></div><h3>圧倒的なコスパ</h3><p>高品質なサーバーを格安でご提供。手軽にマルチプレイを始められます。</p></div>
+        <div class="feature-item mc-feature"><div class="icon"><i class="fas fa-server"></i></div><h3>高性能スペック</h3><p>高性能CPUと大容量メモリで、大人数のマルチプレイや重いMODも快適です。</p></div>
+        <div class="feature-item mc-feature"><div class="icon"><i class="fas fa-umbrella"></i></div><h3>DDoS攻撃対策完備</h3><p>突然の攻撃からサーバーを保護。いつでも安心してゲームに集中できます。</p></div>
+    </div>
+
+    <div class="pricing-grid">
+        <div class="pricing-card mc-plan">
+            <h3>スモール</h3>
+            <p class="plan-desc">友達と始めるバニラサーバーに最適</p>
+            <div class="price">¥1,280<span>/月</span></div>
+            <ul>
+                <li>4GB メモリ</li>
+                <li>推奨 1〜10人</li>
+                <li>DDoS攻撃対策</li>
+                <li>自動バックアップ</li>
+            </ul>
+            <a href="{% url 'purchase_page' %}" class="cta-button">このプランで始める</a>
+        </div>
+        <div class="pricing-card mc-plan recommended">
+            <h3>ミディアム</h3>
+            <p class="plan-desc">MODやプラグインを楽しむならコレ</p>
+            <div class="price">¥2,480<span>/月</span></div>
+            <ul>
+                <li>8GB メモリ</li>
+                <li>推奨 10〜30人</li>
+                <li>DDoS攻撃対策</li>
+                <li>自動バックアップ</li>
+            </ul>
+            <a href="{% url 'purchase_page' %}" class="cta-button">このプランで始める</a>
+        </div>
+        <div class="pricing-card mc-plan">
+            <h3>ラージ</h3>
+            <p class="plan-desc">大規模コミュニティや配信者向け</p>
+            <div class="price">¥4,980<span>/月</span></div>
+            <ul>
+                <li>16GB メモリ</li>
+                <li>推奨 30人以上</li>
+                <li>DDoS攻撃対策</li>
+                <li>自動バックアップ</li>
+            </ul>
+            <a href="{% url 'purchase_page' %}" class="cta-button">このプランで始める</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

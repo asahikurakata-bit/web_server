@@ -1,0 +1,151 @@
+{% extends "servermanager/base.html" %}
+{% block title %}サーバー管理{% endblock %}
+
+{% block content %}
+<style>
+    .messages {
+        padding: 0;
+        margin-bottom: 20px;
+        list-style: none;
+    }
+    .alert {
+        padding: 15px;
+        margin-bottom: 10px;
+        border: 1px solid transparent;
+        border-radius: 4px;
+        color: white;
+    }
+    .alert-success { background-color: #28a745; }
+    .alert-warning { background-color: #ffc107; color: #333; }
+    .alert-error { background-color: #dc3545; }
+
+    .server-list {
+        list-style: none;
+        padding: 0;
+    }
+    .server-item {
+        background-color: var(--bg-secondary);
+        padding: 20px 25px;
+        margin-bottom: 15px;
+        border-radius: 8px;
+        display: flex;
+        flex-wrap: wrap; /* レスポンシブ対応 */
+        justify-content: space-between;
+        align-items: center;
+        gap: 15px; /* 要素間のスペース */
+        transition: background-color 0.3s ease;
+    }
+    .server-item:hover {
+        background-color: #2a2a2a;
+    }
+    .server-info {
+        flex-grow: 1; /* 情報エリアが伸びるように */
+    }
+    .server-info .status-active { color: var(--accent-cyan); }
+    .server-info .status-stopped { color: var(--text-sub); }
+
+    .server-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px; /* ボタン間のスペース */
+    }
+    
+    .server-actions form {
+        display: inline;
+    }
+
+    .server-actions button,
+    .server-actions a.btn {
+        color: var(--bg-primary);
+        border: none;
+        border-radius: 5px;
+        padding: 8px 15px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-block;
+        vertical-align: middle;
+    }
+
+    .server-actions button:hover,
+    .server-actions a.btn:hover {
+        transform: scale(1.05);
+    }
+    
+    /* 各ボタンのカラースタイル */
+    .btn-start { background: var(--accent-cyan); color: var(--bg-primary); }
+    .btn-start:hover { box-shadow: 0 0 10px var(--accent-cyan); }
+
+    .btn-stop { background-color: #ff4d4d; color: white; }
+    .btn-stop:hover { box-shadow: 0 0 10px #ff4d4d; }
+
+    .btn-manage { background-color: #4A90E2; color: white; }
+    .btn-manage:hover { box-shadow: 0 0 10px #4A90E2; }
+    
+    /* 削除ボタン用のスタイルを追加 */
+    .btn-delete { background-color: #E74C3C; color: white; }
+    .btn-delete:hover { box-shadow: 0 0 10px #E74C3C; }
+
+    .no-server {
+        text-align: center;
+        color: var(--text-sub);
+        padding: 50px;
+        background-color: var(--bg-secondary);
+        border-radius: 10px;
+    }
+</style>
+
+<section class="content-section">
+    <h2>サーバー管理</h2>
+
+    {% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+        <li class="alert alert-{{ message.tags }}">{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    <ul class="server-list">
+        {% for server in servers %}
+        <li class="server-item">
+            <div class="server-info">
+                <span>
+                    ポート: {{ server.port }} | 
+                    エディション: <strong>{{ server.get_server_type_display }}</strong> | 
+                    状態: 
+                    {% if server.is_active %}
+                        <strong class="status-active">起動中</strong>
+                    {% else %}
+                        <strong class="status-stopped">停止</strong>
+                    {% endif %}
+                </span>
+            </div>
+            <div class="server-actions">
+                {% if not server.is_active %}
+                <form method="post" action="{% url 'restart_server' server.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-start">起動</button>
+                </form>
+                {% else %}
+                <form method="post" action="{% url 'stop_server' server.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-stop">停止</button>
+                </form>
+                {% endif %}
+
+                <a href="{% url 'manage_server' server.id %}" class="btn btn-manage">サーバー設定</a>
+                
+                <form method="post" action="{% url 'delete_server' server.id %}" onsubmit="return confirm('本当にこのサーバーを削除しますか？この操作は元に戻せません。');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-delete">削除</button>
+                </form>
+            </div>
+        </li>
+        {% empty %}
+        <li class="no-server">サーバーがありません。<a href="{% url 'purchase_page' %}">購入ページ</a>から新しいサーバーを購入してください。</li>
+        {% endfor %}
+    </ul>
+</section>
+{% endblock %}
