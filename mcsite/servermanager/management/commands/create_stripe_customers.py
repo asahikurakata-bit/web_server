@@ -8,11 +8,9 @@ class Command(BaseCommand):
     help = 'Stripeの顧客IDを持たない既存のユーザーに対して、Stripe Customerを作成します。'
 
     def handle(self, *args, **options):
-        # Stripe APIキーを設定
         stripe.api_key = settings.STRIPE_SECRET_KEY
         self.stdout.write("Stripe顧客IDの作成処理を開始します...")
 
-        # プロフィールを持たないユーザーを取得
         users_without_profiles = User.objects.filter(profile__isnull=True)
         if users_without_profiles.exists():
             self.stdout.write(f"{users_without_profiles.count()}人のユーザーにプロフィールが存在しません。作成します...")
@@ -20,7 +18,6 @@ class Command(BaseCommand):
                 Profile.objects.create(user=user)
                 self.stdout.write(self.style.SUCCESS(f"  -> プロフィールを作成しました: {user.username}"))
 
-        # Stripe顧客IDを持たないプロフィールを取得
         profiles_without_customer_id = Profile.objects.filter(stripe_customer_id__isnull=True)
         if not profiles_without_customer_id.exists():
             self.stdout.write(self.style.SUCCESS("全てのユーザーは既にStripe顧客IDを持っています。処理を終了します。"))

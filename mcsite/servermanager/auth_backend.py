@@ -5,9 +5,6 @@ from django.contrib.auth.models import User
 import logging
 
 class EmailBackend(ModelBackend):
-    """
-    Custom authentication backend to authenticate users using their email address.
-    """
     def authenticate(self, request, username=None, password=None, **kwargs):
         print(f"EmailBackend authenticate called with username={username}, kwargs={kwargs}")
         logging.debug(f"EmailBackend authenticate called with username={username}, kwargs={kwargs}")
